@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIA CHEN — Actor · Model · Performer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&amp;family=Montserrat:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #080808;
+    --charcoal: #111111;
+    --dark: #181818;
+    --mid: #2a2a2a;
+    --gold: #c9a96e;
+    --gold-light: #e8c98a;
+    --gold-dim: #9a7a4a;
+    --white: #f5f0eb;
+    --white-dim: rgba(245,240,235,0.6);
+    --white-faint: rgba(245,240,235,0.12);
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Montserrat', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--sans);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CUSTOM CURSOR ── */
+  .cursor-dot {
+    position: fixed; top: 0; left: 0; z-index: 99999;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: transform .15s ease, width .2s, height .2s;
+    will-change: left, top;
+  }
+  .cursor-ring {
+    position: fixed; top: 0; left: 0; z-index: 99998;
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1.5px solid var(--gold);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: width .3s ease, height .3s ease, opacity .3s ease, border-color .3s;
+    opacity: .7;
+    will-change: left, top;
+  }
+  body.cursor-hover .cursor-ring { width: 64px; height: 64px; opacity: 1; border-color: var(--gold-light); }
+  body.cursor-hover .cursor-dot { transform: translate(-50%,-50%) scale(2); }
+
+  /* ── PRELOADER ── */
+  #preloader {
+    position: fixed; inset: 0; z-index: 9000;
+    background: var(--black);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity .8s ease, visibility .8s;
+  }
+  #preloader.hidden { opacity: 0; visibility: hidden; }
+  .pre-name {
+    font-family: var(--serif); font-size: clamp(2rem,6vw,5rem);
+    font-weight: 300; letter-spacing: .25em;
+    color: var(--white); opacity: 0;
+    animation: fadeUp .8s .3s forwards;
+  }
+  .pre-line {
+    width: 0; height: 1px; background: var(--gold); margin-top: 1.5rem;
+    animation: lineGrow 1.2s .8s forwards;
+  }
+  .pre-pct {
+    font-family: var(--sans); font-size: .65rem; letter-spacing: .3em;
+    color: var(--gold); margin-top: 1rem;
+    opacity: 0; animation: fadeUp .5s 1.2s forwards;
+  }
+  @keyframes lineGrow { to { width: 200px; } }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.8rem 4rem;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: background .4s, padding .4s, backdrop-filter .4s;
+  }
+  nav.scrolled {
+    background: rgba(8,8,8,.92);
+    backdrop-filter: blur(12px);
+    padding: 1.2rem 4rem;
+    border-bottom: 1px solid var(--white-faint);
+  }
+  .nav-logo {
+    font-family: var(--serif); font-size: 1.4rem; font-weight: 300;
+    letter-spacing: .2em; color: var(--white); text-decoration: none;
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    font-family: var(--sans); font-size: .65rem; font-weight: 500;
+    letter-spacing: .2em; text-transform: uppercase;
+    color: var(--white-dim); text-decoration: none;
+    transition: color .3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--gold);
+    transition: width .3s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-cta {
+    font-family: var(--sans); font-size: .65rem; font-weight: 500;
+    letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid var(--gold);
+    padding: .6rem 1.5rem; text-decoration: none;
+    transition: background .3s, color .3s;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--black); }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+  .hamburger span { width: 24px; height: 1px; background: var(--white); transition: .3s; }
+
+  /* ── HERO ── */
+  #hero {
+    position: relative; height: 100vh; min-height: 600px;
+    overflow: hidden;
+    display: flex; align-items: flex-end; justify-content: flex-start;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: url('https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=1800&q=90') center/cover no-repeat;
+    transform: scale(1.08);
+    animation: slowZoom 14s ease-out forwards;
+  }
+  @keyframes slowZoom { to { transform: scale(1); } }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(8,8,8,.75) 0%, rgba(8,8,8,.2) 60%, rgba(8,8,8,.55) 100%);
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    padding: 0 5vw 8vh;
+    max-width: 800px;
+    opacity: 0; animation: fadeUp .9s 2.6s forwards;
+  }
+  .hero-eyebrow {
+    font-family: var(--sans); font-size: .6rem; font-weight: 500;
+    letter-spacing: .4em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .hero-eyebrow::before { content:''; width:40px; height:1px; background:var(--gold); }
+  .hero-name {
+    font-family: var(--serif); font-weight: 300;
+    font-size: clamp(3.5rem, 9vw, 9rem);
+    line-height: .95; letter-spacing: -.01em;
+    color: var(--white);
+    margin-bottom: .6rem;
+  }
+  .hero-name em { font-style: italic; color: var(--gold-light); }
+  .hero-tagline {
+    font-family: var(--sans); font-size: .7rem; font-weight: 300;
+    letter-spacing: .35em; text-transform: uppercase;
+    color: var(--white-dim); margin-bottom: 2.5rem;
+  }
+  .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    font-family: var(--sans); font-size: .65rem; font-weight: 600;
+    letter-spacing: .22em; text-transform: uppercase;
+    background: var(--gold); color: var(--black);
+    padding: 1rem 2.5rem; text-decoration: none;
+    transition: background .3s, transform .3s;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+  .btn-outline {
+    font-family: var(--sans); font-size: .65rem; font-weight: 500;
+    letter-spacing: .22em; text-transform: uppercase;
+    border: 1px solid rgba(245,240,235,.4); color: var(--white);
+    padding: 1rem 2.5rem; text-decoration: none;
+    transition: border-color .3s, background .3s;
+    display: inline-block;
+  }
+  .btn-outline:hover { border-color: var(--white); background: var(--white-faint); }
+  .scroll-ind {
+    position: absolute; bottom: 2.5rem; right: 5vw; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: .6rem;
+    opacity: 0; animation: fadeUp .7s 3.2s forwards;
+  }
+  .scroll-ind span {
+    font-family: var(--sans); font-size: .55rem; letter-spacing: .3em;
+    text-transform: uppercase; color: var(--white-dim);
+    writing-mode: vertical-rl;
+  }
+  .scroll-line { width: 1px; height: 50px; background: linear-gradient(to bottom, var(--gold), transparent); animation: scrollDrop 1.8s 3.5s infinite; }
+  @keyframes scrollDrop { 0%,100%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1)} }
+
+  /* ── SECTION COMMONS ── */
+  section { padding: 8rem 5vw; }
+  .section-eyebrow {
+    font-family: var(--sans); font-size: .58rem; font-weight: 500;
+    letter-spacing: .4em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .section-eyebrow::before { content:''; width:30px; height:1px; background:var(--gold); }
+  .section-title {
+    font-family: var(--serif); font-size: clamp(2.5rem,5vw,4.5rem);
+    font-weight: 300; line-height: 1.05; margin-bottom: 1.5rem;
+  }
+
+  /* ── ABOUT ── */
+  #about { background: var(--charcoal); }
+  .about-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 5rem; align-items: center; max-width: 1200px; margin: 0 auto;
+  }
+  .about-img-wrap {
+    position: relative;
+  }
+  .about-img-wrap::before {
+    content: ''; position: absolute;
+    top: -20px; left: -20px; right: 20px; bottom: 20px;
+    border: 1px solid var(--gold-dim); z-index: 0;
+  }
+  .about-img {
+    width: 100%; aspect-ratio: 3/4; object-fit: cover;
+    position: relative; z-index: 1;
+    transition: transform .6s ease;
+    filter: grayscale(20%);
+  }
+  .about-img-wrap:hover .about-img { transform: translate(8px,-8px); }
+  .about-bio {
+    font-family: var(--serif); font-size: clamp(1.05rem,1.5vw,1.25rem);
+    font-weight: 300; line-height: 1.8; color: rgba(245,240,235,.8);
+    margin-bottom: 2.5rem;
+  }
+  .about-bio em { color: var(--gold-light); font-style: italic; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+  .stat-item { border-top: 1px solid var(--white-faint); padding-top: 1rem; }
+  .stat-label { font-family: var(--sans); font-size: .55rem; letter-spacing: .3em; text-transform: uppercase; color: var(--gold); margin-bottom: .4rem; }
+  .stat-value { font-family: var(--serif); font-size: 1.1rem; font-weight: 400; }
+  .skills-list { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .skill-tag {
+    font-family: var(--sans); font-size: .58rem; font-weight: 500;
+    letter-spacing: .15em; text-transform: uppercase;
+    border: 1px solid var(--white-faint); color: var(--white-dim);
+    padding: .4rem 1rem;
+    transition: border-color .3s, color .3s;
+  }
+  .skill-tag:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── PORTFOLIO ── */
+  #portfolio { background: var(--black); }
+  .portfolio-head { max-width: 1200px; margin: 0 auto 3rem; }
+  .filter-tabs { display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 2rem; }
+  .filter-btn {
+    font-family: var(--sans); font-size: .6rem; font-weight: 500;
+    letter-spacing: .2em; text-transform: uppercase;
+    color: var(--white-dim); background: none; border: none; cursor: pointer;
+    padding: .5rem 0; border-bottom: 1px solid transparent;
+    transition: color .3s, border-color .3s;
+  }
+  .filter-btn.active, .filter-btn:hover { color: var(--gold); border-color: var(--gold); }
+  .masonry {
+    max-width: 1200px; margin: 0 auto;
+    columns: 3; column-gap: 1.2rem;
+  }
+  .gallery-item {
+    break-inside: avoid; margin-bottom: 1.2rem;
+    position: relative; overflow: hidden; cursor: pointer;
+  }
+  .gallery-item:nth-child(3n+1) { margin-top: 0; }
+  .gallery-item:nth-child(3n+2) { margin-top: 2rem; }
+  .gallery-item img {
+    width: 100%; display: block;
+    filter: grayscale(15%);
+    transition: transform .7s cubic-bezier(.25,.46,.45,.94), filter .5s;
+  }
+  .gallery-item:hover img { transform: scale(1.06); filter: grayscale(0); }
+  .gallery-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.75) 0%, transparent 50%);
+    opacity: 0; transition: opacity .4s;
+    display: flex; align-items: flex-end; padding: 1.5rem;
+  }
+  .gallery-item:hover .gallery-overlay { opacity: 1; }
+  .gallery-label {
+    font-family: var(--sans); font-size: .6rem; font-weight: 500;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--gold);
+  }
+
+  /* ── LIGHTBOX ── */
+  #lightbox {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,.95); align-items: center; justify-content: center;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; }
+  .lb-close {
+    position: absolute; top: 2rem; right: 2rem;
+    font-size: 1.5rem; color: var(--white); cursor: pointer;
+    background: none; border: none;
+    font-family: var(--sans); font-weight: 200;
+    width: 44px; height: 44px; display: flex; align-items:center; justify-content:center;
+    border: 1px solid var(--white-faint);
+    transition: border-color .3s;
+  }
+  .lb-close:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── SHOWREEL ── */
+  #showreel {
+    background: var(--charcoal);
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    padding: 8rem 5vw;
+  }
+  .reel-wrap {
+    position: relative; width: 100%; max-width: 900px; margin-top: 3rem;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+  }
+  .reel-thumb {
+    width: 100%; height: 100%;
+    background: url('https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=1200&q=85') center/cover;
+    filter: grayscale(30%) brightness(.7);
+    transition: filter .4s;
+  }
+  .reel-wrap:hover .reel-thumb { filter: grayscale(0) brightness(.85); }
+  .play-btn {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 1.2rem; cursor: pointer;
+    text-decoration: none;
+  }
+  .play-circle {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 1px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .3s, transform .3s;
+  }
+  .play-circle svg { width: 24px; fill: var(--gold); margin-left: 4px; }
+  .play-btn:hover .play-circle { background: var(--gold); transform: scale(1.1); }
+  .play-btn:hover .play-circle svg { fill: var(--black); }
+  .play-label { font-family: var(--sans); font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; color: var(--white-dim); }
+  .reel-border {
+    position: absolute; inset: 0;
+    border: 1px solid var(--white-faint);
+    pointer-events: none;
+  }
+
+  /* ── BRANDS ── */
+  #brands { background: var(--black); text-align: center; }
+  .brands-head { max-width: 700px; margin: 0 auto 4rem; }
+  .brands-ticker {
+    overflow: hidden; position: relative;
+    padding: 2rem 0;
+    border-top: 1px solid var(--white-faint);
+    border-bottom: 1px solid var(--white-faint);
+  }
+  .brands-ticker::before, .brands-ticker::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 100px; z-index: 2;
+  }
+  .brands-ticker::before { left: 0; background: linear-gradient(to right, var(--black), transparent); }
+  .brands-ticker::after { right: 0; background: linear-gradient(to left, var(--black), transparent); }
+  .ticker-track {
+    display: flex; gap: 4rem; align-items: center;
+    animation: ticker 22s linear infinite;
+    white-space: nowrap;
+    width: max-content;
+  }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .brand-name {
+    font-family: var(--serif); font-size: 1.8rem; font-weight: 300;
+    letter-spacing: .15em; text-transform: uppercase;
+    color: var(--white-faint);
+    transition: color .3s;
+  }
+  .brand-name:hover { color: var(--gold); }
+
+  /* ── TESTIMONIALS ── */
+  #testimonials { background: var(--charcoal); }
+  .testi-head { max-width: 600px; margin-bottom: 4rem; }
+  .testi-grid {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 1.5rem; max-width: 1200px; margin: 0 auto;
+  }
+  .testi-card {
+    border: 1px solid var(--white-faint); padding: 2.5rem;
+    position: relative;
+    transition: border-color .4s;
+  }
+  .testi-card:hover { border-color: var(--gold-dim); }
+  .testi-card::before {
+    content: '"'; font-family: var(--serif); font-size: 5rem;
+    color: var(--gold); opacity: .25;
+    position: absolute; top: .5rem; left: 1.5rem; line-height: 1;
+  }
+  .testi-text {
+    font-family: var(--serif); font-size: 1.1rem; font-weight: 300;
+    line-height: 1.7; color: rgba(245,240,235,.8); margin-bottom: 2rem;
+    font-style: italic;
+  }
+  .testi-author { border-top: 1px solid var(--white-faint); padding-top: 1.2rem; }
+  .testi-name { font-family: var(--sans); font-size: .7rem; font-weight: 500; letter-spacing: .1em; margin-bottom: .2rem; }
+  .testi-role { font-family: var(--sans); font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); }
+
+  /* ── CONTACT ── */
+  #contact { background: var(--black); }
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; max-width: 1200px; margin: 0 auto; align-items: start; }
+  .contact-info .avail-badge {
+    display: inline-flex; align-items: center; gap: .7rem;
+    border: 1px solid rgba(100,200,100,.3); padding: .5rem 1.2rem;
+    margin-bottom: 2rem;
+  }
+  .avail-dot { width: 8px; height: 8px; border-radius: 50%; background: #4caf50; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .avail-text { font-family: var(--sans); font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: rgba(100,200,100,.8); }
+  .contact-info p {
+    font-family: var(--serif); font-size: 1.15rem; font-weight: 300;
+    line-height: 1.8; color: rgba(245,240,235,.75); margin-bottom: 2.5rem;
+  }
+  .social-links { display: flex; flex-direction: column; gap: .8rem; }
+  .social-link {
+    display: flex; align-items: center; gap: 1rem;
+    text-decoration: none; color: var(--white-dim);
+    font-family: var(--sans); font-size: .65rem; font-weight: 500;
+    letter-spacing: .15em; text-transform: uppercase;
+    padding: .8rem 1.2rem;
+    border: 1px solid var(--white-faint);
+    transition: border-color .3s, color .3s, background .3s;
+  }
+  .social-link:hover { border-color: var(--gold); color: var(--gold); background: var(--white-faint); }
+  .social-link svg { width: 18px; flex-shrink: 0; fill: currentColor; }
+  .contact-form { display: flex; flex-direction: column; gap: 1.2rem; }
+  .form-group { position: relative; }
+  .form-group label {
+    display: block; font-family: var(--sans); font-size: .55rem;
+    letter-spacing: .25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: .5rem;
+  }
+  .form-group input, .form-group textarea {
+    width: 100%; background: transparent;
+    border: none; border-bottom: 1px solid var(--white-faint);
+    color: var(--white); font-family: var(--sans); font-size: .85rem;
+    padding: .8rem 0; outline: none;
+    transition: border-color .3s;
+  }
+  .form-group input:focus, .form-group textarea:focus { border-color: var(--gold); }
+  .form-group textarea { resize: none; height: 100px; }
+  .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(245,240,235,.25); }
+  .form-submit {
+    font-family: var(--sans); font-size: .65rem; font-weight: 600;
+    letter-spacing: .22em; text-transform: uppercase;
+    background: var(--gold); color: var(--black);
+    border: none; padding: 1rem 2.5rem; cursor: pointer;
+    transition: background .3s, transform .3s;
+    align-self: flex-start;
+    margin-top: .5rem;
+  }
+  .form-submit:hover { background: var(--gold-light); transform: translateY(-2px); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--charcoal);
+    border-top: 1px solid var(--white-faint);
+    padding: 3rem 5vw;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1.5rem;
+  }
+  .footer-brand { font-family: var(--serif); font-size: 1.3rem; font-weight: 300; letter-spacing: .2em; }
+  .footer-brand span { color: var(--gold); }
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a {
+    font-family: var(--sans); font-size: .58rem; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--white-dim); text-decoration: none;
+    transition: color .3s;
+  }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-copy { font-family: var(--sans); font-size: .58rem; letter-spacing: .1em; color: rgba(245,240,235,.3); }
+
+  /* ── FADE-IN SCROLL ── */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── MOBILE MENU ── */
+  .mobile-menu {
+    display: none; position: fixed; inset: 0; z-index: 90;
+    background: rgba(8,8,8,.97);
+    flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    font-family: var(--serif); font-size: 2.5rem; font-weight: 300;
+    letter-spacing: .15em; color: var(--white); text-decoration: none;
+    transition: color .3s;
+  }
+  .mobile-menu a:hover { color: var(--gold); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 1.5rem 1.5rem; }
+    nav.scrolled { padding: 1rem 1.5rem; }
+    .nav-links, .nav-cta { display: none; }
+    .hamburger { display: flex; }
+    .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .testi-grid { grid-template-columns: 1fr; }
+    .masonry { columns: 2; }
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+    section { padding: 5rem 5vw; }
+  }
+  @media (max-width: 540px) {
+    .masonry { columns: 1; }
+    .testi-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+    .hero-name { font-size: clamp(3rem, 13vw, 5rem); }
+    .hero-btns { flex-direction: column; }
+    .btn-primary, .btn-outline { text-align: center; }
+    .filter-tabs { gap: 1rem; }
+  }
+</style>
+</head>
+<body class="" style="">
+
+<!-- CUSTOM CURSOR -->
+<div class="cursor-dot" id="cursorDot" style="left: 610px; top: 438px;"></div>
+<div class="cursor-ring" id="cursorRing" style="left: 610px; top: 438px;"></div>
+
+<!-- PRELOADER -->
+<div id="preloader" class="hidden">
+  <div class="pre-name">ARIA CHEN</div>
+  <div class="pre-line"></div>
+  <div class="pre-pct">Actor · Model · Performer</div>
+</div>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#about" onclick="closeMobile()">About</a>
+  <a href="#portfolio" onclick="closeMobile()">Portfolio</a>
+  <a href="#showreel" onclick="closeMobile()">Showreel</a>
+  <a href="#brands" onclick="closeMobile()">Brands</a>
+  <a href="#contact" onclick="closeMobile()">Contact</a>
+</div>
+
+<!-- NAVBAR -->
+<nav id="navbar" class="scrolled">
+  <a href="#" class="nav-logo">ARIA<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#showreel">Showreel</a></li>
+    <li><a href="#brands">Brands</a></li>
+    <li><a href="#testimonials">Press</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Book Now</a>
+  <div class="hamburger" id="hamburger" onclick="toggleMobile()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Based in Los Angeles</div>
+    <h1 class="hero-name">Aria<br><em>Chen</em></h1>
+    <p class="hero-tagline">Actor &nbsp;·&nbsp; Storyteller &nbsp;·&nbsp; Performer</p>
+    <div class="hero-btns">
+      <a href="#portfolio" class="btn-primary">View Portfolio</a>
+      <a href="#contact" class="btn-outline">Book Now</a>
+    </div>
+  </div>
+  <div class="scroll-ind">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-img-wrap reveal visible">
+      <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&amp;q=85" alt="Aria Chen portrait" class="about-img" loading="lazy">
+    </div>
+    <div class="reveal visible" style="transition-delay:.2s">
+      <div class="section-eyebrow">About Me</div>
+      <h2 class="section-title">Born to tell<br><em style="font-style:italic;color:var(--gold-light)">stories</em></h2>
+      <p class="about-bio">
+        From the stages of Shanghai to the screens of Hollywood, <em>Aria Chen</em> has carved a presence that is both commanding and deeply human. With a background in classical theatre and contemporary film, she brings an authenticity that resonates across cultures and mediums.
+      </p>
+      <p class="about-bio" style="margin-bottom:2rem">
+        Her work spans high-fashion editorials, international campaigns, and critically acclaimed independent films — each project a new chapter in an evolving narrative of artistry.
+      </p>
+      <div class="stats-grid">
+        <div class="stat-item"><div class="stat-label">Height</div><div class="stat-value">5′ 9″</div></div>
+        <div class="stat-item"><div class="stat-label">Age</div><div class="stat-value">26</div></div>
+        <div class="stat-item"><div class="stat-label">Location</div><div class="stat-value">LA / NYC</div></div>
+        <div class="stat-item"><div class="stat-label">Eyes</div><div class="stat-value">Dark Brown</div></div>
+        <div class="stat-item"><div class="stat-label">Hair</div><div class="stat-value">Black</div></div>
+        <div class="stat-item"><div class="stat-label">Languages</div><div class="stat-value">EN · ZH</div></div>
+      </div>
+      <div class="skills-list">
+        <span class="skill-tag">Acting</span>
+        <span class="skill-tag">Runway</span>
+        <span class="skill-tag">Editorial</span>
+        <span class="skill-tag">Dancing</span>
+        <span class="skill-tag">Voiceover</span>
+        <span class="skill-tag">Commercial</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="portfolio-head reveal visible">
+    <div class="section-eyebrow">Work</div>
+    <h2 class="section-title">Portfolio</h2>
+    <div class="filter-tabs">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="fashion">Fashion</button>
+      <button class="filter-btn" data-filter="editorial">Editorial</button>
+      <button class="filter-btn" data-filter="commercial">Commercial</button>
+      <button class="filter-btn" data-filter="lifestyle">Lifestyle</button>
+    </div>
+  </div>
+  <div class="masonry" id="gallery">
+    <div class="gallery-item" data-cat="fashion" onclick="openLightbox(this)" style="transition: opacity 0.4s, transform 0.4s; opacity: 1; transform: scale(1); pointer-events: auto;">
+      <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&amp;q=85" alt="Fashion" loading="lazy">
+      <div class="gallery-overlay"><span class="gallery-label">Fashion · SS24</span></div>
+    </div>
+    <div class="gallery-item" data-cat="editorial" onclick="openLightbox(this)" style="transition: opacity 0.4s, transform 0.4s; opacity: 1; transform: scale(1); pointer-events: auto;">
+      <img src="https://images.unsplash.com/photo-1488716820095-cbe80883c496?w=600&amp;q=85" alt="Editorial" loading="lazy">
+      <div class="gallery-overlay"><span class="gallery-label">Editorial · Vogue</span></div>
+    </div>
+    <div class="gallery-item" data-cat="lifestyle" onclick="openLightbox(this)" style="transition: opacity 0.4s, transform 0.4s; opacity: 1; transform: scale(1); pointer-events: auto;">
+      <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&amp;q=85" alt="Lifestyle" loading="lazy">
+      <div class="gallery-overlay"><span class="gallery-label">Lifestyle</span></div>
+    </div>
+    <div class="gallery-item" data-cat="commercial" onclick="openLightbox(this)" style="transition: opacity 0.4s, transform 0.4s; opacity: 1; transform: scale(1); pointer-events: auto;">
+      <img src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=600&amp;q=85" alt="Commercial" loading="lazy">
+      <div class="gallery-overlay"><span class="gallery-label">Commercial · Campaign</span></div>
+    </div>
+    <div class="gallery-item" data-cat="fashion" onclick="openLightbox(this)" style="transition: opacity 0.4s, transform 0.4s; opacity: 1; transform: scale(1); pointer-events: auto;">
+      <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&amp;q=85" alt="Fashion" loading="lazy">
+      <div class="gallery-overlay"><span class="gallery-label">Fashion · Runway</span></div>
+    </div>
+    <div class="gallery-item" data-cat="editorial" onclick="openLightbox(this)" style="transition: opacity 0.4s, transform 0.4s; opacity: 1; transform: scale(1); pointer-events: auto;">
+      <img src="https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?w=600&amp;q=85" alt="Editorial" loading="lazy">
+      <div class="gallery-overlay"><span class="gallery-label">Editorial · Harper's</span></div>
+    </div>
+    <div class="gallery-item" data-cat="lifestyle" onclick="openLightbox(this)" style="transition: opacity 0.4s, transform 0.4s; opacity: 1; transform: scale(1); pointer-events: auto;">
+      <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&amp;q=85" alt="Portrait" loading="lazy">
+      <div class="gallery-overlay"><span class="gallery-label">Portrait · Studio</span></div>
+    </div>
+    <div class="gallery-item" data-cat="commercial" onclick="openLightbox(this)" style="transition: opacity 0.4s, transform 0.4s; opacity: 1; transform: scale(1); pointer-events: auto;">
+      <img src="https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=600&amp;q=85" alt="Commercial" loading="lazy">
+      <div class="gallery-overlay"><span class="gallery-label">Commercial · Brand</span></div>
+    </div>
+    <div class="gallery-item" data-cat="fashion" onclick="openLightbox(this)" style="transition: opacity 0.4s, transform 0.4s; opacity: 1; transform: scale(1); pointer-events: auto;">
+      <img src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=600&amp;q=85" alt="Fashion" loading="lazy">
+      <div class="gallery-overlay"><span class="gallery-label">Fashion · Couture</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lbImg" src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=600&amp;q=85" alt="">
+</div>
+
+<!-- SHOWREEL -->
+<section id="showreel">
+  <div class="section-eyebrow reveal visible" style="justify-content:center">Showreel</div>
+  <h2 class="section-title reveal visible" style="text-align:center;transition-delay:.1s">Watch the reel</h2>
+  <div class="reel-wrap reveal visible" style="transition-delay:.2s">
+    <div class="reel-thumb"></div>
+    <a href="https://vimeo.com" target="_blank" rel="noopener" class="play-btn">
+      <div class="play-circle">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+      </div>
+      <span class="play-label">Play Showreel · 2024</span>
+    </a>
+    <div class="reel-border"></div>
+  </div>
+</section>
+
+<!-- BRANDS -->
+<section id="brands">
+  <div class="brands-head reveal visible">
+    <div class="section-eyebrow" style="justify-content:center">Collaborations</div>
+    <h2 class="section-title">Trusted by<br><em style="font-style:italic;color:var(--gold-light)">iconic brands</em></h2>
+  </div>
+  <div class="brands-ticker reveal visible" style="transition-delay:.2s">
+    <div class="ticker-track" id="ticker">
+      <span class="brand-name">Chanel</span>
+      <span class="brand-name">Louis Vuitton</span>
+      <span class="brand-name">Dior</span>
+      <span class="brand-name">Prada</span>
+      <span class="brand-name">Gucci</span>
+      <span class="brand-name">Valentino</span>
+      <span class="brand-name">Versace</span>
+      <span class="brand-name">Balenciaga</span>
+      <span class="brand-name">Armani</span>
+      <span class="brand-name">Saint Laurent</span>
+      <!-- duplicate for seamless loop -->
+      <span class="brand-name">Chanel</span>
+      <span class="brand-name">Louis Vuitton</span>
+      <span class="brand-name">Dior</span>
+      <span class="brand-name">Prada</span>
+      <span class="brand-name">Gucci</span>
+      <span class="brand-name">Valentino</span>
+      <span class="brand-name">Versace</span>
+      <span class="brand-name">Balenciaga</span>
+      <span class="brand-name">Armani</span>
+      <span class="brand-name">Saint Laurent</span>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="testi-head reveal visible">
+    <div class="section-eyebrow">Press &amp; Clients</div>
+    <h2 class="section-title">What they<br><em style="font-style:italic;color:var(--gold-light)">say</em></h2>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal visible">
+      <p class="testi-text">Working with Aria was an absolute revelation. She brings a depth and nuance to every frame that is extraordinarily rare in models of her generation.</p>
+      <div class="testi-author">
+        <div class="testi-name">MARCO FERRETTI</div>
+        <div class="testi-role">Fashion Photographer · Vogue Italia</div>
+      </div>
+    </div>
+    <div class="testi-card reveal visible" style="transition-delay:.15s">
+      <p class="testi-text">Aria's screen presence is magnetic. She commands attention effortlessly, and her ability to transform between characters is genuinely impressive.</p>
+      <div class="testi-author">
+        <div class="testi-name">SARAH YAMOTO</div>
+        <div class="testi-role">Casting Director · Paramount Pictures</div>
+      </div>
+    </div>
+    <div class="testi-card reveal visible" style="transition-delay:.3s">
+      <p class="testi-text">Our brand campaign exceeded every benchmark — largely because Aria understood our vision intuitively and elevated it beyond our expectations.</p>
+      <div class="testi-author">
+        <div class="testi-name">CLAIRE DESCHAMPS</div>
+        <div class="testi-role">Creative Director · Maison Lumière</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-grid">
+    <div class="reveal visible">
+      <div class="section-eyebrow">Let's Work</div>
+      <h2 class="section-title">Book &amp;<br><em style="font-style:italic;color:var(--gold-light)">Collaborate</em></h2>
+      <div class="contact-info">
+        <div class="avail-badge">
+          <div class="avail-dot"></div>
+          <span class="avail-text">Available for collaborations &amp; projects</span>
+        </div>
+        <p>Open to fashion editorials, brand campaigns, commercial projects, film &amp; television, and long-term brand ambassadorships. Represented globally.</p>
+        <div class="social-links">
+          <a href="mailto:aria@arischen.com" class="social-link">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg>
+            aria@arischen.com
+          </a>
+          <a href="https://wa.me/11234567890" target="_blank" class="social-link">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"></path><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.553 4.107 1.522 5.837L.057 23.855l6.159-1.618A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.822 9.822 0 01-5.003-1.366l-.359-.213-3.718.976.993-3.619-.234-.372A9.817 9.817 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"></path></svg>
+            WhatsApp Direct
+          </a>
+          <a href="https://instagram.com" target="_blank" class="social-link">
+            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg>
+            @aria.chen
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="reveal visible" style="transition-delay:.2s">
+      <form class="contact-form" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" placeholder="Full name" required="">
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="your@email.com" required="">
+        </div>
+        <div class="form-group">
+          <label for="project">Project Type</label>
+          <input type="text" id="project" placeholder="Film · Campaign · Editorial · Other">
+        </div>
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" placeholder="Tell me about your project..." required=""></textarea>
+        </div>
+        <button type="submit" class="form-submit">Send Inquiry</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">ARIA<span>.</span>CHEN</div>
+  <div class="footer-links">
+    <a href="#about">About</a>
+    <a href="#portfolio">Work</a>
+    <a href="#contact">Contact</a>
+    <a href="mailto:aria@arischen.com">Email</a>
+  </div>
+  <div class="footer-copy">© 2025 Aria Chen. All rights reserved.</div>
+</footer>
+
+<script>
+// ── PRELOADER ──
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('preloader').classList.add('hidden');
+  }, 2400);
+});
+
+// ── CURSOR ──
+const dot = document.getElementById('cursorDot');
+const ring = document.getElementById('cursorRing');
+let mx = window.innerWidth/2, my = window.innerHeight/2;
+let rx = mx, ry = my;
+
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+function animCursor() {
+  // dot follows instantly
+  dot.style.left = mx + 'px';
+  dot.style.top  = my + 'px';
+  // ring lags behind smoothly
+  rx += (mx - rx) * 0.13;
+  ry += (my - ry) * 0.13;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+
+document.querySelectorAll('a, button, .gallery-item, .filter-btn, .skill-tag, .brand-name').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+});
+
+// ── NAVBAR ──
+const nav = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// ── MOBILE MENU ──
+function toggleMobile() {
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+function closeMobile() {
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+
+// ── REVEAL ON SCROLL ──
+const reveals = document.querySelectorAll('.reveal');
+const ro = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } });
+}, { threshold: .1 });
+reveals.forEach(r => ro.observe(r));
+
+// ── GALLERY FILTER ──
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelector('.filter-btn.active').classList.remove('active');
+    btn.classList.add('active');
+    const cat = btn.dataset.filter;
+    document.querySelectorAll('.gallery-item').forEach(item => {
+      const show = cat === 'all' || item.dataset.cat === cat;
+      item.style.transition = 'opacity .4s, transform .4s';
+      item.style.opacity = show ? '1' : '0';
+      item.style.transform = show ? 'scale(1)' : 'scale(.95)';
+      item.style.pointerEvents = show ? 'auto' : 'none';
+    });
+  });
+});
+
+// ── LIGHTBOX ──
+function openLightbox(el) {
+  const src = el.querySelector('img').src;
+  document.getElementById('lbImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if(e.target === this) closeLightbox();
+});
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+
+// ── CONTACT FORM ──
+function handleSubmit(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('.form-submit');
+  btn.textContent = 'Sending…';
+  setTimeout(() => {
+    btn.textContent = '✓ Sent — Thank You';
+    btn.style.background = '#4caf50';
+    e.target.reset();
+    setTimeout(() => { btn.textContent='Send Inquiry'; btn.style.background=''; }, 3000);
+  }, 1200);
+}
+</script>
+
+
+</body></html>
